@@ -28,36 +28,36 @@ class PlayerControl:
     def on_update(self, e, dt):
         engine.update_fps()
 
-        GRAVITY = 800
+        GRAVITY = 1200   # gravidade mais forte para cair rápido
+        JUMP_FORCE = -500  # força fixa do pulo
         CHAO_Y = 500
 
-        self.vy += GRAVITY * dt
+        # aplica gravidade
+        self.vy += GRAVITY * dt  
 
         dx = 0
-        if e.is_key_down(self.SC_A):
-            if not e.would_collide_with(e.x- (self.VEL * dt * 0.01), e.y, wall):
-                dx -= self.VEL * dt
-            player.flip_h= True
-        if e.is_key_down(self.SC_D):
-            if not e.collides_with(wall):
-                dx += self.VEL * dt
-            else:
-                dx -= self.VEL * dt
-            player.flip_h= False
-        
-        if e.is_key_down(self.SC_SHOW_INFO):
-            print(self.h)
+        if e.is_key_down(self.SC_A) and not (e.would_collide(wall, -self.VEL * dt, -5)):
+            dx -= self.VEL * dt
+            player.flip_h = True
+        if e.is_key_down(self.SC_D) and not (e.would_collide(wall, self.VEL * dt, -5)):
+            dx += self.VEL * dt
+            player.flip_h = False
 
-        # Só pula se estiver no chão
-        if e.is_key_down(self.SC_W) and e.y >= CHAO_Y:
-            self.vy = -400
+        # verificação simples se está no chão
+        no_chao = bool((e.y >= CHAO_Y) + (e.would_collide(wall, 0, +1)))
+        if no_chao:
+            self.vy = 0
+        # só pula se estiver no chão
+        if e.is_key_down(self.SC_W) and no_chao:
+            self.vy = JUMP_FORCE  
 
+        # aplica movimento vertical
         dy = self.vy * dt
 
         e.move(dx, dy)
 
-        # Simples chão
-        if (e.y > CHAO_Y):
+        # trava no chão
+        if e.y >= CHAO_Y:
             e.y = CHAO_Y
             self.vy = 0
 

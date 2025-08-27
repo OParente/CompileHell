@@ -93,10 +93,15 @@ class Entity:
         _ch.compilehell_check_collision.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
         _ch.compilehell_check_collision.restype = ctypes.c_int
         return bool(_ch.compilehell_check_collision(self._native, other._native))
-    
-    def would_collide_with(self, x, y, other):
-        _ch.compilehell_would_collide.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_void_p]
-        return bool(_ch.compilehell_would_collide(self._native, x, y, other._native))
+
+    def would_collide(self, other, dx, dy):
+        _ch.compilehell_would_collide.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_float, ctypes.c_float]
+        _ch.compilehell_would_collide.restype = ctypes.c_int
+        return bool(_ch.compilehell_would_collide(self._native, other._native, dx, dy))
 
     def is_key_down(self, scancode):
         return bool(_ch.compilehell_is_key_down(scancode))
+    def get_mouse(self):
+        return _ch.compilehell_get_mouse()
+    def is_mouse_down(self, button: int):
+        return _ch.compilehell_is_mouse_down(button)

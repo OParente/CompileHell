@@ -147,10 +147,15 @@ int compilehell_check_collision(Entity* a, Entity* b) {
              a->y + a->h < b->y || a->y > b->y + b->h);
 }
 
-int compilehell_would_collide(Entity* a, float x, float y, Entity* b) {
+/// Checa colisão futura entre duas entidades (considerando movimento dx, dy de 'a')
+int compilehell_would_collide(Entity* a, Entity* b, float dx, float dy) {
     if (!a || !b) return 0;
-    return !(x + a->w < b->x || x > b->x + b->w ||
-             y + a->h < b->y || y > b->y + b->h);
+
+    float ax = a->x + dx;
+    float ay = a->y + dy;
+
+    return !(ax + a->w < b->x || ax > b->x + b->w ||
+             ay + a->h < b->y || ay > b->y + b->h);
 }
 
 void compilehell_get_mouse(int* x, int* y) {

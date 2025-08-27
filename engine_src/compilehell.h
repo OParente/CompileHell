@@ -83,8 +83,8 @@ void compilehell_destroy_entity(Entity* e);
  */
 int compilehell_check_collision(Entity* a, Entity* b);
 
-int compilehell_would_collide(Entity* a, float x, float y, Entity* b);
-/**
+int compilehell_would_collide(Entity* a, Entity* b, float dx, float dy);
+/*
  * Obtém a posição atual do mouse.
  * @param x Ponteiro para coordenada X
  * @param y Ponteiro para coordenada Y
