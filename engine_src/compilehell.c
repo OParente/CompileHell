@@ -98,14 +98,14 @@ void compilehell_present() {
 // ------------------------
 // Entidades
 // ------------------------
-Entity* compilehell_create_entity(const char* path, float x, float y, float w, float h) {
+Entity* compilehell_create_entity(const char* path, float x, float y, float w, float h, float camx, float camy) {
     printf("Tentando criar entidade com textura: %s\n", path);
     Entity* e = (Entity*)malloc(sizeof(Entity));
     if (!e) {
         printf("Falha ao alocar entidade!\n");
         return NULL;
     }
-    e->x = x; e->y = y; e->w = w; e->h = h;
+    e->x = x; e->y = y; e->w = w; e->h = h; e->camx = camx; e->camy = camy;
 
     SDL_Surface* surf = IMG_Load(path);
     if (!surf) {

@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: autenticat
+Version: 2.0.0
+Summary: Sistema de autenticação modular e seguro com criptografia XOR
+Author: Davi Parente da Silva
+Keywords: authentication security crypto xor
+Requires-Python: >=3.7

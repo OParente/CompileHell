@@ -9,7 +9,7 @@
  * dinamicamente via scripts Python.
  */
 typedef struct CompileHell_Entity {
-    float x, y, w, h;
+    float x, y, w, h, camx, camy;
     void* texture;
     int flip_h;
     int flip_v;
@@ -63,7 +63,7 @@ void compilehell_fill_rect(int x, int y, int w, int h);
 /**
  * Cria uma entidade com sprite.
  */
-Entity* compilehell_create_entity(const char *texture_path, float x, float y, float w, float h);
+Entity* compilehell_create_entity(const char *texture_path, float x, float y, float w, float h, float camx, float camy);
 
 /**
  * Desenha entidade.
