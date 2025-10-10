@@ -1,6 +1,5 @@
 import ctypes
 from .engine import lib as _ch
-from . import camera as c
 
 class EntityStruct(ctypes.Structure):
     _fields_ = [
