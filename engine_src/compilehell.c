@@ -33,6 +33,16 @@ int compilehell_init(const char* title, int w, int h) {
     return 1;
 }
 
+void compilehell_set_fullscreen(int enable) {
+    if (gWindow) {
+        if (enable) {
+            SDL_SetWindowFullscreen(gWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        } else {
+            SDL_SetWindowFullscreen(gWindow, 0);
+        }
+    }
+}
+
 // ------------------------
 // Loop rodando
 // ------------------------
