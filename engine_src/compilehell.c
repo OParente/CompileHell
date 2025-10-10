@@ -33,6 +33,16 @@ int compilehell_init(const char* title, int w, int h) {
     return 1;
 }
 
+void compilehell_set_fullscreen(int enable) {
+    if (gWindow) {
+        if (enable) {
+            SDL_SetWindowFullscreen(gWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        } else {
+            SDL_SetWindowFullscreen(gWindow, 0);
+        }
+    }
+}
+
 // ------------------------
 // Loop rodando
 // ------------------------
@@ -88,14 +98,14 @@ void compilehell_present() {
 // ------------------------
 // Entidades
 // ------------------------
-Entity* compilehell_create_entity(const char* path, float x, float y, float w, float h) {
+Entity* compilehell_create_entity(const char* path, float x, float y, float w, float h, float camx, float camy) {
     printf("Tentando criar entidade com textura: %s\n", path);
     Entity* e = (Entity*)malloc(sizeof(Entity));
     if (!e) {
         printf("Falha ao alocar entidade!\n");
         return NULL;
     }
-    e->x = x; e->y = y; e->w = w; e->h = h;
+    e->x = x; e->y = y; e->w = w; e->h = h; e->camx = camx; e->camy = camy;
 
     SDL_Surface* surf = IMG_Load(path);
     if (!surf) {
@@ -147,10 +157,15 @@ int compilehell_check_collision(Entity* a, Entity* b) {
              a->y + a->h < b->y || a->y > b->y + b->h);
 }
 
-int compilehell_would_collide(Entity* a, float x, float y, Entity* b) {
+/// Checa colisão futura entre duas entidades (considerando movimento dx, dy de 'a')
+int compilehell_would_collide(Entity* a, Entity* b, float dx, float dy) {
     if (!a || !b) return 0;
-    return !(x + a->w < b->x || x > b->x + b->w ||
-             y + a->h < b->y || y > b->y + b->h);
+
+    float ax = a->x + dx;
+    float ay = a->y + dy;
+
+    return !(ax + a->w < b->x || ax > b->x + b->w ||
+             ay + a->h < b->y || ay > b->y + b->h);
 }
 
 void compilehell_get_mouse(int* x, int* y) {

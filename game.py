@@ -1,5 +1,5 @@
 import os, sys, time, threading
-from pycompilehell import engine, entity
+from pycompilehell import engine, entity, camera
 
 print("Iniciando engine...")
 # Inicializar engine
@@ -13,6 +13,17 @@ player = entity.Entity("examples/assets/player.png", 100, 100, 64, 64)
 wall = entity.Entity("examples/assets/player.png", 300, 500, 64, 64)
 print("Player criado.")
 
+camera_x= 0
+camera_y= 0
+class CameraControl:
+    camera_x= 0
+    camera_y= 0
+    def on_update(self, e, dt):
+        global camera_x
+        camera_x = 0
+        e.camx = camera_x
+        e.camy = camera_y
+        e.move(e.x+e.camx, e.y+e.camy)
 # Script para controlar player via WASD
 class PlayerControl:
     SC_W = 26
@@ -23,45 +34,28 @@ class PlayerControl:
 
     VEL = 200
     def __init__(self):
-        self.vy = 0  # velocidade vertical
+        None
 
     def on_update(self, e, dt):
         engine.update_fps()
 
-        GRAVITY = 1200   # gravidade mais forte para cair rápido
-        JUMP_FORCE = -500  # força fixa do pulo
-        CHAO_Y = 500
-
-        # aplica gravidade
-        self.vy += GRAVITY * dt  
-
         dx = 0
-        if e.is_key_down(self.SC_A) and not (e.would_collide(wall, -self.VEL * dt, -5)):
+        dy = 0
+        if e.is_key_down(self.SC_A) and not (e.would_collide(wall, -self.VEL * dt, e.y)):
             dx -= self.VEL * dt
             player.flip_h = True
-        if e.is_key_down(self.SC_D) and not (e.would_collide(wall, self.VEL * dt, -5)):
+        if e.is_key_down(self.SC_D) and not (e.would_collide(wall, self.VEL * dt, e.y)):
             dx += self.VEL * dt
             player.flip_h = False
-
-        # verificação simples se está no chão
-        no_chao = bool((e.y >= CHAO_Y) + (e.would_collide(wall, 0, +1)))
-        if no_chao:
-            self.vy = 0
-        # só pula se estiver no chão
-        if e.is_key_down(self.SC_W) and no_chao:
-            self.vy = JUMP_FORCE  
-
-        # aplica movimento vertical
-        dy = self.vy * dt
-
+        if e.is_key_down(self.SC_S) and not (e.would_collide(wall, e.x, self.VEL * dt)):
+            dy += self.VEL * dt
+        if e.is_key_down(self.SC_W) and not (e.would_collide(wall, e.x, -self.VEL * dt)):
+            dy -= self.VEL * dt
         e.move(dx, dy)
 
-        # trava no chão
-        if e.y >= CHAO_Y:
-            e.y = CHAO_Y
-            self.vy = 0
 
 player.add_script(PlayerControl())
+player.add_script(CameraControl())
 
 # Loop principal
 last_time = time.time()
