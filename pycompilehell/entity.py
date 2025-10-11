@@ -7,18 +7,16 @@ class EntityStruct(ctypes.Structure):
         ("y", ctypes.c_float),
         ("w", ctypes.c_float),
         ("h", ctypes.c_float),
-        ("camx", ctypes.c_float),
-        ("camy", ctypes.c_float),
         ("texture", ctypes.c_void_p),
         ("flip_h", ctypes.c_int),
         ("flip_v", ctypes.c_int),
     ]
 
 class Entity:
-    def __init__(self, texture_path, x, y, camx, camy, w=64, h=64):
+    def __init__(self, texture_path, x, y, w=64, h=64):
         _ch.compilehell_create_entity.argtypes = [ctypes.c_char_p, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float]
         _ch.compilehell_create_entity.restype = ctypes.c_void_p
-        self._native = _ch.compilehell_create_entity(texture_path.encode(), float(x), float(y), float(w), float(h), float(camx), float(camy))
+        self._native = _ch.compilehell_create_entity(texture_path.encode(), float(x), float(y), float(w), float(h))
         if not self._native:
             raise RuntimeError(f"Falha ao criar entidade: {texture_path}")
         self._struct = EntityStruct.from_address(self._native)
@@ -32,25 +30,11 @@ class Entity:
         self._struct.x = value
 
     @property
-    def camx(self):
-        return self._struct.camx
-    @x.setter
-    def camx(self, value):
-        self._struct.camx = value
-
-    @property
     def y(self):
         return self._struct.y
     @y.setter
     def y(self, value):
         self._struct.y = value
-
-    @property
-    def camy(self):
-        return self._struct.camy
-    @y.setter
-    def camy(self, value):
-        self._struct.camy = value
 
     @property
     def w(self):

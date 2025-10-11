@@ -105,7 +105,7 @@ Entity* compilehell_create_entity(const char* path, float x, float y, float w, f
         printf("Falha ao alocar entidade!\n");
         return NULL;
     }
-    e->x = x; e->y = y; e->w = w; e->h = h; e->camx = camx; e->camy = camy;
+    e->x = x; e->y = y; e->w = w; e->h = h;
 
     SDL_Surface* surf = IMG_Load(path);
     if (!surf) {

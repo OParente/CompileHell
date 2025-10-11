@@ -1,9 +1,8 @@
 import base64
 
 # --- Configuração ---
-SECRET_KEY = 0x42  # chave XOR simples (pode mudar)
-HEADER = "# RESXX FILE v1\n"
-
+SECRET_KEY = 0x9989  # chave XOR simples (pode mudar)
+HEADER = "# RESXX FILE v2\n"
 
 def xor_encrypt(text: str) -> str:
     return ''.join(chr(ord(c) ^ SECRET_KEY) for c in text)
