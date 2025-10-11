@@ -98,7 +98,7 @@ void compilehell_present() {
 // ------------------------
 // Entidades
 // ------------------------
-Entity* compilehell_create_entity(const char* path, float x, float y, float w, float h, float camx, float camy) {
+Entity* compilehell_create_entity(const char* path, float x, float y, float w, float h) {
     printf("Tentando criar entidade com textura: %s\n", path);
     Entity* e = (Entity*)malloc(sizeof(Entity));
     if (!e) {

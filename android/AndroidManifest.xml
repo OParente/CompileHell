@@ -1,0 +1,21 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.compilehell.game">
+
+    <application
+        android:label="CompileHell"
+        android:hasCode="false"
+        android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+
+        <activity android:name="android.app.NativeActivity"
+            android:label="CompileHell"
+            android:exported="true">
+            <meta-data android:name="android.app.lib_name"
+                android:value="compilehell" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+</manifest>
