@@ -20,6 +20,11 @@ class ObjectBuilder:
         self.zoom = 1.0
         self.grid_size = 32
 
+        # --- Arrastar objeto ---
+        self.dragging_obj = None
+        self.drag_offset_x = 0
+        self.drag_offset_y = 0
+
         self._build_ui()
         self._bind_controls()
         self.draw_scene()
@@ -64,6 +69,9 @@ class ObjectBuilder:
         self.canvas.bind("<MouseWheel>", self.on_zoom)
         self.canvas.bind("<ButtonPress-2>", self.start_pan)
         self.canvas.bind("<B2-Motion>", self.do_pan)
+        self.canvas.bind("<ButtonPress-1>", self.start_drag)
+        self.canvas.bind("<B1-Motion>", self.do_drag)
+        self.canvas.bind("<ButtonRelease-1>", self.stop_drag)
         self.root.bind("-", lambda e: self.change_zoom(0.9))
         self.root.bind("=", lambda e: self.change_zoom(1.1))
 
@@ -98,11 +106,16 @@ class ObjectBuilder:
             s = obj["size"] * self.zoom
             sx, sy = self.world_to_screen(x, y)
             tex = obj["texture"]
+            scale_x = obj.get("scale_x", 1.0)
+            scale_y = obj.get("scale_y", 1.0)
+
+            draw_w = int(s * scale_x)
+            draw_h = int(s * scale_y)
 
             if tex:
                 if tex not in self.images:
                     try:
-                        img = Image.open(tex).resize((obj["size"], obj["size"]))
+                        img = Image.open(tex).resize((draw_w, draw_h))
                         if obj["flip_h"]:
                             img = img.transpose(Image.FLIP_LEFT_RIGHT)
                         if obj["flip_v"]:
@@ -116,16 +129,16 @@ class ObjectBuilder:
                 if image:
                     self.canvas.create_image(sx, sy, anchor="nw", image=image)
                 else:
-                    self.canvas.create_rectangle(sx, sy, sx + s, sy + s, fill=obj["color"])
+                    self.canvas.create_rectangle(sx, sy, sx + draw_w, sy + draw_h, fill=obj["color"])
             else:
-                self.canvas.create_rectangle(sx, sy, sx + s, sy + s, fill=obj["color"])
+                self.canvas.create_rectangle(sx, sy, sx + draw_w, sy + draw_h, fill=obj["color"])
 
             # Contorno do selecionado
             if obj == self.selected:
-                self.canvas.create_rectangle(sx, sy, sx + s, sy + s, outline="yellow", width=2)
+                self.canvas.create_rectangle(sx, sy, sx + draw_w, sy + draw_h, outline="yellow", width=2)
 
             # Nome
-            self.canvas.create_text(sx + s / 2, sy + s / 2, text=obj["name"],
+            self.canvas.create_text(sx + draw_w / 2, sy + draw_h / 2, text=obj["name"],
                                     fill="white", font=("Arial", int(10 * self.zoom), "bold"))
 
     # -------------------------------------------------------
@@ -143,7 +156,9 @@ class ObjectBuilder:
             "color": color,
             "flip_h": False,
             "flip_v": False,
-            "texture": ""
+            "texture": "",
+            "scale_x": 1.0,
+            "scale_y": 1.0
         }
         self.objects.append(obj)
         self.selected = obj
@@ -202,7 +217,10 @@ class ObjectBuilder:
         def update_field(label, key, is_int=False):
             val = label.get()
             try:
-                obj[key] = int(val) if is_int else val
+                if key in ("scale_x", "scale_y"):
+                    obj[key] = float(val)
+                else:
+                    obj[key] = int(val) if is_int else val
             except ValueError:
                 pass
             self.draw_scene()
@@ -292,7 +310,9 @@ class ObjectBuilder:
                 "color": props.get("color", "#ffffff"),
                 "flip_h": props.get("flip_h", "False") == "True",
                 "flip_v": props.get("flip_v", "False") == "True",
-                "texture": props.get("texture", "")
+                "texture": props.get("texture", ""),
+                "scale_x": float(props.get("scale_x", 1.0)),
+                "scale_y": float(props.get("scale_y", 1.0))
             }
             self.objects.append(obj)
         self.draw_scene()
@@ -315,6 +335,31 @@ class ObjectBuilder:
             self.objects = json.load(f)
         self.draw_scene()
         messagebox.showinfo("Carregado", f"JSON carregado de {path}")
+
+    def start_drag(self, event):
+        wx, wy = self.screen_to_world(event.x, event.y)
+        for obj in reversed(self.objects):  # Prioriza objetos desenhados por cima
+            s = obj["size"] * obj.get("scale_x", 1.0)
+            if obj["x"] <= wx <= obj["x"] + s and obj["y"] <= wy <= obj["y"] + s:
+                self.selected = obj
+                self.dragging_obj = obj
+                self.drag_offset_x = wx - obj["x"]
+                self.drag_offset_y = wy - obj["y"]
+                self.draw_scene()
+                return
+        self.selected = None
+        self.dragging_obj = None
+        self.draw_scene()
+
+    def do_drag(self, event):
+        if self.dragging_obj:
+            wx, wy = self.screen_to_world(event.x, event.y)
+            self.dragging_obj["x"] = int(wx - self.drag_offset_x)
+            self.dragging_obj["y"] = int(wy - self.drag_offset_y)
+            self.draw_scene()
+
+    def stop_drag(self, event):
+        self.dragging_obj = None
 
 
 # -------------------------------------------------------

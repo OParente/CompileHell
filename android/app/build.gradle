@@ -1,0 +1,25 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdk 33
+    defaultConfig {
+        applicationId "org.compilehell"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "0.1"
+    }
+
+    sourceSets.main {
+        jniLibs.srcDirs = ['libs']
+        assets.srcDirs = ['assets']
+    }
+
+    packagingOptions {
+        pickFirst '**/*.so'
+    }
+}
+
+dependencies { }

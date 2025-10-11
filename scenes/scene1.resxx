@@ -1,0 +1,6 @@
+{
+    "name": "scene1",
+    "entities": [
+        {"type": "entity", "name": "player", "x": 100, "y": 150}
+    ]
+}
