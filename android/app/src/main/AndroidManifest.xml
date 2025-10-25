@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.compilehell.gamess">
+    package="org.compilehell.gamessssss">
     <application android:label="CompileHell" android:hasCode="false">
         <activity android:name="android.app.NativeActivity"
             android:exported="true">

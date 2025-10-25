@@ -9,8 +9,8 @@ print("Engine iniciada.")
 
 print("Criando player...")
 # Cria player
-player = entity.Entity("examples/assets/player.png", 100, 100, 64, 64)
-wall = entity.Entity("examples/assets/player.png", 300, 500, 64, 64)
+player = entity.Entity("examples/assets/player.png", 100, 100, 64, 64, False, False)
+wall = entity.Entity("examples/assets/player.png", 300, 500, 64, 64, False, False)
 print("Player criado.")
 
 # Script para controlar player via WASD
