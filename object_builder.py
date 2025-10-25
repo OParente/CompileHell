@@ -1,9 +1,14 @@
 import json
 import tkinter as tk
-from tkinter import filedialog, simpledialog, colorchooser, messagebox
+import os
+import subprocess
+import customtkinter as ctk
+from customtkinter import filedialog
+from tkinter import messagebox, colorchooser, simpledialog
 from PIL import Image, ImageTk
 from pycompilehell.resource_lib import save_resxx, load_resxx
 
+path= ""
 
 class ObjectBuilder:
     def __init__(self, root):
@@ -25,6 +30,8 @@ class ObjectBuilder:
         self.drag_offset_x = 0
         self.drag_offset_y = 0
 
+        self.playing = False
+
         self._build_ui()
         self._bind_controls()
         self.draw_scene()
@@ -36,31 +43,36 @@ class ObjectBuilder:
         self.canvas.pack(side="left", fill="both", expand=True)
 
         # --- Painel lateral ---
-        sidebar = tk.Frame(self.root, bg="gray25", width=250)
+        sidebar = ctk.CTkFrame(self.root, width=250)
         sidebar.pack(side="right", fill="y")
 
-        tk.Label(sidebar, text="Object Builder", fg="white", bg="gray25",
-                 font=("Arial", 14, "bold")).pack(pady=10)
+        ctk.CTkLabel(sidebar, text="Object Builder", font=("Arial", 14, "bold")).pack(pady=10)
 
-        tk.Button(sidebar, text="Novo Objeto", command=self.add_object).pack(fill="x", pady=4)
-        tk.Button(sidebar, text="Propriedades", command=self.open_properties_window).pack(fill="x", pady=4)
-        tk.Button(sidebar, text="Salvar .resxx", command=self.save_resxx_file).pack(fill="x", pady=4)
-        tk.Button(sidebar, text="Abrir .resxx", command=self.load_resxx_file).pack(fill="x", pady=4)
-        tk.Button(sidebar, text="Salvar .json", command=self.save_json).pack(fill="x", pady=4)
-        tk.Button(sidebar, text="Abrir .json", command=self.load_json).pack(fill="x", pady=4)
-        tk.Button(sidebar, text="Excluir Selecionado", command=self.delete_selected).pack(fill="x", pady=4)
-        tk.Button(sidebar, text="Limpar Cena", command=self.clear_scene).pack(fill="x", pady=4)
+        ctk.CTkButton(sidebar, text="Novo Objeto", command=self.add_object).pack(fill="x", pady=4)
+        ctk.CTkButton(sidebar, text="Propriedades", command=self.open_properties_window).pack(fill="x", pady=4)
+        ctk.CTkButton(sidebar, text="Salvar .resxx", command=self.save_resxx_file).pack(fill="x", pady=4)
+        ctk.CTkButton(sidebar, text="Abrir .resxx", command=self.load_resxx_file).pack(fill="x", pady=4)
+        ctk.CTkButton(sidebar, text="Salvar .json", command=self.save_json).pack(fill="x", pady=4)
+        ctk.CTkButton(sidebar, text="Abrir .json", command=self.load_json).pack(fill="x", pady=4)
+        ctk.CTkButton(sidebar, text="Excluir Selecionado", command=self.delete_selected).pack(fill="x", pady=4)
+        ctk.CTkButton(sidebar, text="Limpar Cena", command=self.clear_scene).pack(fill="x", pady=4)
 
         # --- Zoom manual ---
-        zoom_frame = tk.Frame(sidebar, bg="gray25")
+        zoom_frame = ctk.CTkFrame(sidebar)
         zoom_frame.pack(pady=10)
-        tk.Button(zoom_frame, text="-", width=4, command=lambda: self.change_zoom(0.9)).pack(side="left", padx=5)
-        tk.Button(zoom_frame, text="=", width=4, command=lambda: self.change_zoom(1.1)).pack(side="right", padx=5)
+        ctk.CTkButton(zoom_frame, text="-", width=4, command=lambda: self.change_zoom(0.9)).pack(side="left", padx=5)
+        ctk.CTkButton(zoom_frame, text="=", width=4, command=lambda: self.change_zoom(1.1)).pack(side="right", padx=5)
 
         # --- Info ---
-        self.coord_label = tk.Label(sidebar, text="x: 0  y: 0", bg="gray25", fg="lightgray")
+        self.coord_label = ctk.CTkLabel(sidebar, text="x: 0  y: 0")
         self.coord_label.pack(side="bottom", pady=5)
-        tk.Label(sidebar, text="Scroll = Zoom\nBotão do meio = Mover", bg="gray25", fg="lightgray").pack(side="bottom", pady=5)
+        ctk.CTkLabel(sidebar, text="Scroll = Zoom\nBotão do meio = Mover").pack(side="bottom", pady=5)
+
+        # --- Botões Play/Stop ---
+        btn_frame = ctk.CTkFrame(sidebar)
+        btn_frame.pack(pady=10)
+        ctk.CTkButton(btn_frame, text="Play", command=self.start_play).pack(side="left", padx=5)
+        ctk.CTkButton(btn_frame, text="Stop", command=self.stop_play).pack(side="left", padx=5)
 
     # -------------------------------------------------------
     def _bind_controls(self):
@@ -291,7 +303,12 @@ class ObjectBuilder:
         path = filedialog.asksaveasfilename(defaultextension=".resxx", filetypes=[("Resource File", "*.resxx")])
         if not path:
             return
+        # Pegue o id da cena do nome do arquivo (ex: scene1.resxx → id=1)
+        import re
+        m = re.search(r'(\d+)\.resxx$', path)
+        scene_id = int(m.group(1)) if m else 0
         data = {f"Object_{i}_{o['name']}": {k: str(v) for k, v in o.items()} for i, o in enumerate(self.objects)}
+        data["SceneInfo"] = {"scene_id": str(scene_id)}
         save_resxx(path, data)
         messagebox.showinfo("Salvo", f"Arquivo salvo em {path}")
 
@@ -301,7 +318,11 @@ class ObjectBuilder:
             return
         data = load_resxx(path)
         self.objects.clear()
+        self.scene_id = 0
         for section, props in data.items():
+            if section == "SceneInfo":
+                self.scene_id = int(props.get("scene_id", 0))
+                continue
             obj = {
                 "name": props.get("name", section),
                 "x": int(props.get("x", 0)),
@@ -352,8 +373,8 @@ class ObjectBuilder:
         self.draw_scene()
 
     def do_drag(self, event):
-        if self.dragging_obj:
-            wx, wy = self.screen_to_world(event.x, event.y)
+        if self.dragging_obj and not self.playing:
+            wx, wy = event.x, event.y
             self.dragging_obj["x"] = int(wx - self.drag_offset_x)
             self.dragging_obj["y"] = int(wy - self.drag_offset_y)
             self.draw_scene()
@@ -361,6 +382,23 @@ class ObjectBuilder:
     def stop_drag(self, event):
         self.dragging_obj = None
 
+    def start_play(self):
+        self.playing = True
+        # Use o id da cena para escolher o game.py
+        game_path = f"game.py{self.scene_id}"
+        if not os.path.exists(game_path):
+            messagebox.showerror("Erro", f"{game_path} não encontrado.")
+            return
+        subprocess.Popen(["python3", game_path])
+
+    def stop_play(self):
+        self.playing = False
+
+    def play_loop(self):
+        game_path= f"{path}.py"#gets the scene python
+        if not self.playing:
+            return
+        subprocess.Popen(["python3", game_path])
 
 # -------------------------------------------------------
 if __name__ == "__main__":

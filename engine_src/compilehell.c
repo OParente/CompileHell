@@ -98,7 +98,7 @@ void compilehell_present() {
 // ------------------------
 // Entidades
 // ------------------------
-Entity* compilehell_create_entity(const char* path, float x, float y, float w, float h) {
+Entity* compilehell_create_entity(const char* path, float x, float y, float w, float h, int flip_h, int flip_v) {
     printf("Tentando criar entidade com textura: %s\n", path);
     Entity* e = (Entity*)malloc(sizeof(Entity));
     if (!e) {
@@ -106,6 +106,8 @@ Entity* compilehell_create_entity(const char* path, float x, float y, float w, f
         return NULL;
     }
     e->x = x; e->y = y; e->w = w; e->h = h;
+    e->flip_h = flip_h;
+    e->flip_v = flip_v;
 
     SDL_Surface* surf = IMG_Load(path);
     if (!surf) {

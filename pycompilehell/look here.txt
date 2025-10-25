@@ -1,0 +1,4 @@
+hey, 
+if you are thinking of use the python libs, 
+i don't recommend they will probably be deprecated soon,
+use the c++ libs

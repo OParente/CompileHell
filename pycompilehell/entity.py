@@ -13,10 +13,10 @@ class EntityStruct(ctypes.Structure):
     ]
 
 class Entity:
-    def __init__(self, texture_path, x, y, w=64, h=64):
-        _ch.compilehell_create_entity.argtypes = [ctypes.c_char_p, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float]
-        _ch.compilehell_create_entity.restype = ctypes.c_void_p
-        self._native = _ch.compilehell_create_entity(texture_path.encode(), float(x), float(y), float(w), float(h))
+    def __init__(self, texture_path, x, y, w=64, h=64, flip_h=False, flip_v=False):
+        self._native = _ch.compilehell_create_entity(
+            texture_path.encode(), float(x), float(y), float(w), float(h), int(flip_h), int(flip_v)
+        )
         if not self._native:
             raise RuntimeError(f"Falha ao criar entidade: {texture_path}")
         self._struct = EntityStruct.from_address(self._native)
@@ -105,3 +105,8 @@ class Entity:
         return _ch.compilehell_get_mouse()
     def is_mouse_down(self, button: int):
         return _ch.compilehell_is_mouse_down(button)
+
+_ch.compilehell_create_entity.argtypes = [
+    ctypes.c_char_p, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_int, ctypes.c_int
+]
+_ch.compilehell_create_entity.restype = ctypes.c_void_p
